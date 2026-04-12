@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Ice Rink Dark Theme ──────────────────────────────────────────────── */
+    /* Dark charcoal surfaces with ice-blue accent + amber beer gold */
+
+    --background: 220 15% 10%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 14% 13%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 14% 13%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 199 80% 48%;        /* ice blue */
+    --primary-foreground: 220 15% 8%;
+
+    --secondary: 38 90% 52%;       /* beer amber */
+    --secondary-foreground: 220 15% 8%;
+
+    --muted: 220 12% 18%;
+    --muted-foreground: 210 12% 58%;
+
+    --accent: 220 12% 20%;
+    --accent-foreground: 210 20% 92%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 92%;
+
+    --border: 220 12% 22%;
+    --input: 220 12% 20%;
+    --ring: 199 80% 48%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar: 220 16% 8%;
+    --sidebar-foreground: 210 20% 88%;
+    --sidebar-border: 220 12% 16%;
+    --sidebar-ring: 199 80% 48%;
+    --sidebar-primary: 199 80% 48%;
+    --sidebar-primary-foreground: 220 15% 8%;
+    --sidebar-accent: 220 14% 14%;
+    --sidebar-accent-foreground: 210 20% 92%;
+
+    /* Charts */
+    --chart-1: 199 80% 48%;
+    --chart-2: 38 90% 52%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 270 65% 60%;
+
+    /* Status colors */
+    --color-in: 142 71% 45%;
+    --color-out: 0 72% 51%;
+    --color-maybe: 38 90% 52%;
+    --color-pending: 210 12% 58%;
+  }
+
+  /* Light mode override */
+  .light {
+    --background: 210 25% 97%;
+    --foreground: 220 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 12%;
+
+    --primary: 199 80% 38%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 38 90% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 15% 93%;
+    --muted-foreground: 210 10% 45%;
+
+    --accent: 210 15% 90%;
+    --accent-foreground: 220 25% 12%;
+
+    --destructive: 0 72% 44%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 15% 85%;
+    --input: 210 15% 90%;
+    --ring: 199 80% 38%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Cabinet Grotesk', 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100dvh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Clash Display', 'Cabinet Grotesk', sans-serif;
+    line-height: 1.2;
+    text-wrap: balance;
+    font-weight: 700;
+  }
+
+  img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  input, button, textarea, select {
+    font: inherit;
+  }
+
+  p, li {
+    text-wrap: pretty;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+    color: hsl(var(--foreground));
+  }
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+/* ── Status badge colors ────────────────────────────────────────────────────── */
+.status-in    { color: hsl(var(--color-in)); background: hsl(var(--color-in) / 0.12); }
+.status-out   { color: hsl(var(--color-out)); background: hsl(var(--color-out) / 0.12); }
+.status-maybe { color: hsl(var(--color-maybe)); background: hsl(var(--color-maybe) / 0.12); }
+.status-pending { color: hsl(var(--color-pending)); background: hsl(var(--color-pending) / 0.12); }
+
+/* ── Ice rink shimmer effect ─────────────────────────────────────────────────*/
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--accent)) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
