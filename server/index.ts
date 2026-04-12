@@ -4,6 +4,16 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 
 const app = express();
+
+// Redirect www → apex domain (301 permanent)
+app.use((req, res, next) => {
+  if (req.hostname.startsWith('www.')) {
+    const apex = req.hostname.replace(/^www\./, '');
+    return res.redirect(301, `https://${apex}${req.originalUrl}`);
+  }
+  next();
+});
+
 const httpServer = createServer(app);
 
 declare module "http" {
