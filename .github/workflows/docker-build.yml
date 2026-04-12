@@ -24,6 +24,7 @@ jobs:
         with:
           context: .
           push: false          # build only, no registry push
+          load: true           # load into local Docker daemon so smoke test can run it
           tags: bbhc:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
