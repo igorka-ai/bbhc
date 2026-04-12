@@ -1,18 +1,26 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Install native build tools needed for better-sqlite3 (C++ module)
+RUN apk add --no-cache python3 make g++
+
 COPY package*.json ./
 RUN npm ci
+
 COPY . .
 RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Install only production deps
+# Install native build tools for better-sqlite3 in production stage too
+RUN apk add --no-cache python3 make g++
+
+# Install only production deps (better-sqlite3 recompiles here)
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copy built artifacts
+# Copy built artifacts from builder
 COPY --from=builder /app/dist ./dist
 
 # Create the data directory for the SQLite volume mount
