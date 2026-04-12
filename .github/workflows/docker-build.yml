@@ -1,0 +1,72 @@
+name: Docker Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false          # build only, no registry push
+          tags: bbhc:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test — server starts and API responds
+        run: |
+          docker run -d \
+            --name bbhc-test \
+            -p 5000:5000 \
+            -e NODE_ENV=production \
+            -e PORT=5000 \
+            -e DB_PATH=/tmp/bbhc-test.db \
+            bbhc:ci
+
+          # Wait up to 20s for the server to be ready
+          echo "Waiting for server..."
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:5000/api/games > /dev/null 2>&1; then
+              echo "Server is up after ${i}s"
+              break
+            fi
+            if [ "$i" -eq 20 ]; then
+              echo "Server did not start in time"
+              docker logs bbhc-test
+              exit 1
+            fi
+            sleep 1
+          done
+
+          # Verify API returns a JSON array
+          RESPONSE=$(curl -sf http://localhost:5000/api/games)
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | python3 -c "import sys,json; data=json.load(sys.stdin); assert isinstance(data, list), 'Expected JSON array'; print(f'OK — /api/games returned {len(data)} games')"
+
+          docker stop bbhc-test
+
+      - name: Print build summary
+        if: always()
+        run: |
+          echo "### Docker Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`bbhc:ci\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | \`linux/amd64\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache | GitHub Actions cache |" >> $GITHUB_STEP_SUMMARY
