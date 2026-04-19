@@ -14,6 +14,7 @@ export const players = sqliteTable("players", {
   avatarInitials: text("avatar_initials"),
   joinedAt: text("joined_at").notNull().default(""),
   notes: text("notes"),
+  passwordHash: text("password_hash"),
 });
 
 export const insertPlayerSchema = createInsertSchema(players).omit({ id: true });

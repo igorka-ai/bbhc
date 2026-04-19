@@ -66,6 +66,13 @@ try {
   // Column already exists — ignore
 }
 
+// Safe migration: add password_hash column to players if it doesn't exist
+try {
+  sqlite.exec(`ALTER TABLE players ADD COLUMN password_hash TEXT`);
+} catch (e) {
+  // Column already exists — ignore
+}
+
 // Seed with sample data if empty
 const playerCount = db.select().from(players).all().length;
 if (playerCount === 0) {

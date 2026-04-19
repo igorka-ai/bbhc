@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import type { Server } from "http";
+import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { insertPlayerSchema, insertGameSchema, insertMessageSchema } from "@shared/schema";
 import { z } from "zod";
@@ -16,11 +17,34 @@ export function registerRoutes(httpServer: Server, app: Express) {
     res.json(player);
   });
 
-  app.post("/api/players", (req, res) => {
+  app.post("/api/players", async (req, res) => {
     const body = req.body;
 
     // Support the new registration form fields (firstName, lastName, skillLevel)
     if (body.firstName && body.lastName) {
+      // Password validation
+      const password = body.password;
+      if (!password || typeof password !== "string" || password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+      }
+      if (!/[A-Z]/.test(password)) {
+        return res.status(400).json({ error: "Password must contain at least 1 uppercase letter" });
+      }
+      if (!/[0-9]/.test(password)) {
+        return res.status(400).json({ error: "Password must contain at least 1 number" });
+      }
+
+      // Check for duplicate email
+      if (body.email) {
+        const existing = storage.getPlayers().find(
+          (p) => p.email?.toLowerCase() === body.email.toLowerCase()
+        );
+        if (existing) {
+          return res.status(400).json({ error: "Email already registered" });
+        }
+      }
+
+      const hash = await bcrypt.hash(password, 10);
       const name = `${body.firstName} ${body.lastName}`;
       const position = body.position === "goalie" ? "goalie" : "skater";
       const notes = body.skillLevel ? `Skill level: ${body.skillLevel}` : undefined;
@@ -35,11 +59,13 @@ export function registerRoutes(httpServer: Server, app: Express) {
         avatarInitials: initials,
         joinedAt: new Date().toISOString().split("T")[0],
         notes,
+        passwordHash: hash,
       };
       const result = insertPlayerSchema.safeParse(mapped);
       if (!result.success) return res.status(400).json({ error: result.error.flatten() });
       const player = storage.createPlayer(result.data);
-      return res.status(201).json({ ...player, firstName: body.firstName, skillLevel: body.skillLevel });
+      const { passwordHash, ...safePlayer } = player;
+      return res.status(201).json({ ...safePlayer, firstName: body.firstName, skillLevel: body.skillLevel });
     }
 
     // Legacy form support

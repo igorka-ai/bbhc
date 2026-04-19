@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type Game } from "@shared/schema";
-import { CalendarDays, MapPin, Clock, Users, Trophy, ArrowRight } from "lucide-react";
+import { CalendarDays, MapPin, Clock, Users, Trophy, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -177,30 +177,58 @@ const SKILL_LEVELS = [
   { value: "retired_pro", label: "\u2B50 Retired Pro \u2014 Used to be good, trust me bro" },
 ];
 
-const INITIAL_FORM = { firstName: "", lastName: "", email: "", phone: "", position: "", skillLevel: "" };
+const INITIAL_FORM = { firstName: "", lastName: "", email: "", phone: "", position: "", skillLevel: "", password: "", confirmPassword: "" };
 
 function JoinForm() {
   const [form, setForm] = useState({ ...INITIAL_FORM });
   const [success, setSuccess] = useState<{ firstName: string; skillLevel: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const mutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => apiRequest("POST", "/api/players", data),
     onSuccess: (player: { firstName: string; skillLevel: string }) => {
       setSuccess({ firstName: player.firstName, skillLevel: player.skillLevel });
       setError(null);
+      setFieldErrors({});
       setForm({ ...INITIAL_FORM });
     },
     onError: (err: Error) => {
-      setError(err.message || "Something went wrong. Please try again.");
+      const msg = err.message || "Something went wrong. Please try again.";
+      if (msg === "Email already registered") {
+        setFieldErrors((prev) => ({ ...prev, email: "This email is already registered. Try logging in instead." }));
+      } else {
+        setError(msg);
+      }
       setSuccess(null);
     },
   });
+
+  function validatePassword(password: string): string | null {
+    if (password.length < 6) return "Password must be at least 6 characters";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least 1 uppercase letter";
+    if (!/[0-9]/.test(password)) return "Password must contain at least 1 number";
+    return null;
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    const errors: Record<string, string> = {};
+
+    const pwError = validatePassword(form.password);
+    if (pwError) errors.password = pwError;
+    if (form.confirmPassword !== form.password) errors.confirmPassword = "Passwords do not match";
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     mutation.mutate({
       firstName: form.firstName,
       lastName: form.lastName,
@@ -208,6 +236,7 @@ function JoinForm() {
       phone: form.phone || null,
       position: form.position,
       skillLevel: form.skillLevel,
+      password: form.password,
     });
   }
 
@@ -271,9 +300,14 @@ function JoinForm() {
                 required
                 placeholder="bobby@example.com"
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, email: e.target.value }));
+                  setFieldErrors((prev) => { const { email, ...rest } = prev; return rest; });
+                }}
                 className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary"
               />
+              <p className="text-xs text-gray-400 mt-1">Your email will be your username</p>
+              {fieldErrors.email && <p className="text-xs text-destructive mt-1">{fieldErrors.email}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="reg-phone">Phone Number <span className="text-muted-foreground">(optional)</span></Label>
@@ -285,6 +319,56 @@ function JoinForm() {
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                 className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="reg-password">Create Password *</Label>
+              <div className="relative">
+                <Input
+                  id="reg-password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Min 6 chars, 1 uppercase, 1 number"
+                  value={form.password}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, password: e.target.value }));
+                    setFieldErrors((prev) => { const { password, ...rest } = prev; return rest; });
+                  }}
+                  className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {fieldErrors.password && <p className="text-xs text-destructive mt-1">{fieldErrors.password}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="reg-confirmPassword">Confirm Password *</Label>
+              <div className="relative">
+                <Input
+                  id="reg-confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  placeholder="Re-enter your password"
+                  value={form.confirmPassword}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, confirmPassword: e.target.value }));
+                    setFieldErrors((prev) => { const { confirmPassword, ...rest } = prev; return rest; });
+                  }}
+                  className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {fieldErrors.confirmPassword && <p className="text-xs text-destructive mt-1">{fieldErrors.confirmPassword}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="reg-position">Position *</Label>
