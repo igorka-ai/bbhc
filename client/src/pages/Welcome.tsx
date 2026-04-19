@@ -364,12 +364,12 @@ export default function Welcome() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="#join"
+            <button
+              onClick={() => document.getElementById('join')?.scrollIntoView({ behavior: 'smooth' })}
               className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-primary text-primary-foreground font-display font-semibold text-sm tracking-wide hover:bg-primary/90 transition-colors"
             >
               Join the Club <span className="text-lg leading-none">↓</span>
-            </a>
+            </button>
             <Link href="/dashboard">
               <span className="inline-flex items-center gap-2 px-8 py-3 rounded-lg border border-white/20 text-white font-display font-semibold text-sm tracking-wide hover:bg-white/10 transition-colors cursor-pointer">
                 Member Portal <ArrowRight size={16} />
