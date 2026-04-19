@@ -55,7 +55,7 @@ function SectionDivider() {
 function WelcomeHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-16 border-b border-white/10 bg-[hsl(222_47%_11%)]/90 backdrop-blur-md">
-      <div className="flex items-center gap-2.5">
+      <a href="/#/" className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity">
         <svg
           width="32" height="32" viewBox="0 0 32 32" fill="none"
           xmlns="http://www.w3.org/2000/svg" aria-label="Brooklyn Beer Hockey Club"
@@ -71,7 +71,7 @@ function WelcomeHeader() {
           <div className="text-sm font-bold text-foreground leading-tight font-display tracking-wide">BROOKLYN</div>
           <div className="text-xs text-primary font-semibold leading-tight tracking-widest">BEER HOCKEY</div>
         </div>
-      </div>
+      </a>
       <Link href="/dashboard">
         <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 text-primary hover:bg-primary/10">
           Member Portal <ArrowRight size={14} />

@@ -15,7 +15,7 @@ const NAV = [
 
 function Logo() {
   return (
-    <div className="flex items-center gap-2.5 px-4 py-4 border-b border-sidebar-border">
+    <a href="/#/" className="flex items-center gap-2.5 px-4 py-4 border-b border-sidebar-border cursor-pointer hover:opacity-80 transition-opacity">
       <svg
         width="32" height="32" viewBox="0 0 32 32" fill="none"
         xmlns="http://www.w3.org/2000/svg" aria-label="Brooklyn Beer Hockey Club"
@@ -35,7 +35,7 @@ function Logo() {
         <div className="text-sm font-bold text-foreground leading-tight font-display tracking-wide">BROOKLYN</div>
         <div className="text-xs text-primary font-semibold leading-tight tracking-widest">BEER HOCKEY</div>
       </div>
-    </div>
+    </a>
   );
 }
 
