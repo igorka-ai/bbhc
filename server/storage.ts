@@ -59,6 +59,13 @@ sqlite.exec(`
   );
 `);
 
+// Safe migration: add notes column to players if it doesn't exist
+try {
+  sqlite.exec(`ALTER TABLE players ADD COLUMN notes TEXT`);
+} catch (e) {
+  // Column already exists — ignore
+}
+
 // Seed with sample data if empty
 const playerCount = db.select().from(players).all().length;
 if (playerCount === 0) {
