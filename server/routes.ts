@@ -17,7 +17,33 @@ export function registerRoutes(httpServer: Server, app: Express) {
   });
 
   app.post("/api/players", (req, res) => {
-    const result = insertPlayerSchema.safeParse(req.body);
+    const body = req.body;
+
+    // Support the new registration form fields (firstName, lastName, skillLevel)
+    if (body.firstName && body.lastName) {
+      const name = `${body.firstName} ${body.lastName}`;
+      const position = body.position === "goalie" ? "goalie" : "skater";
+      const notes = body.skillLevel ? `Skill level: ${body.skillLevel}` : undefined;
+      const initials = `${body.firstName[0]}${body.lastName[0]}`.toUpperCase();
+      const mapped = {
+        name,
+        number: 0,
+        position,
+        email: body.email || null,
+        phone: body.phone || null,
+        isActive: true,
+        avatarInitials: initials,
+        joinedAt: new Date().toISOString().split("T")[0],
+        notes,
+      };
+      const result = insertPlayerSchema.safeParse(mapped);
+      if (!result.success) return res.status(400).json({ error: result.error.flatten() });
+      const player = storage.createPlayer(result.data);
+      return res.status(201).json({ ...player, firstName: body.firstName, skillLevel: body.skillLevel });
+    }
+
+    // Legacy form support
+    const result = insertPlayerSchema.safeParse(body);
     if (!result.success) return res.status(400).json({ error: result.error.flatten() });
     res.status(201).json(storage.createPlayer(result.data));
   });

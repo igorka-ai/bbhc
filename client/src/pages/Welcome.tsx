@@ -167,17 +167,27 @@ function UpcomingGames() {
 
 /* ── Registration Form ───────────────────────────────────────────────── */
 
-const INITIAL_FORM = { name: "", number: "", position: "skater", email: "", phone: "" };
+const SKILL_LEVELS = [
+  { value: "bench_warmer", label: "\u{1FA91} Bench Warmer \u2014 I'm here for the beer" },
+  { value: "novice", label: "\u{1F423} Novice \u2014 Just figured out which end of the stick to hold" },
+  { value: "beer_leaguer", label: "\u{1F37A} Beer Leaguer \u2014 Solid on skates, shaky on rules" },
+  { value: "grinder", label: "\u{1F4AA} Grinder \u2014 No talent, all heart" },
+  { value: "dangler", label: "\u{1F3D2} Dangler \u2014 Got moves, just ask me" },
+  { value: "sniper", label: "\u{1F3AF} Sniper \u2014 Top shelf where mama hides the cookies" },
+  { value: "retired_pro", label: "\u2B50 Retired Pro \u2014 Used to be good, trust me bro" },
+];
+
+const INITIAL_FORM = { firstName: "", lastName: "", email: "", phone: "", position: "", skillLevel: "" };
 
 function JoinForm() {
   const [form, setForm] = useState({ ...INITIAL_FORM });
-  const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{ firstName: string; skillLevel: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => apiRequest("POST", "/api/players", data),
-    onSuccess: (player: { name: string }) => {
-      setSuccess(player.name);
+    onSuccess: (player: { firstName: string; skillLevel: string }) => {
+      setSuccess({ firstName: player.firstName, skillLevel: player.skillLevel });
       setError(null);
       setForm({ ...INITIAL_FORM });
     },
@@ -192,26 +202,29 @@ function JoinForm() {
     setError(null);
     setSuccess(null);
     mutation.mutate({
-      name: form.name,
-      number: Number(form.number),
-      position: form.position,
+      firstName: form.firstName,
+      lastName: form.lastName,
       email: form.email,
       phone: form.phone || null,
-      isActive: true,
-      joinedAt: new Date().toISOString().split("T")[0],
+      position: form.position,
+      skillLevel: form.skillLevel,
     });
   }
 
   if (success) {
+    const skillLabel = SKILL_LEVELS.find((s) => s.value === success.skillLevel)?.label || success.skillLevel;
     return (
       <Card className="bg-card/50 border-primary/30">
         <CardContent className="p-8 text-center space-y-3">
-          <div className="text-4xl">🏒</div>
+          <div className="text-4xl">{"\u{1F3D2}"}</div>
           <h3 className="text-xl font-display font-bold text-foreground">
-            Welcome to the club, {success}!
+            Welcome to the club, {success.firstName}!
           </h3>
           <p className="text-muted-foreground text-sm">
-            You're on the roster. Head to the{" "}
+            You're officially a {skillLabel}. See you on the ice! {"\u{1F3D2}"}
+          </p>
+          <p className="text-muted-foreground text-sm">
+            Head to the{" "}
             <Link href="/dashboard" className="text-primary underline underline-offset-2">Member Portal</Link>{" "}
             to check schedules and RSVP.
           </p>
@@ -229,42 +242,29 @@ function JoinForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="reg-name">Full Name *</Label>
+              <Label htmlFor="reg-firstName">First Name *</Label>
               <Input
-                id="reg-name"
+                id="reg-firstName"
                 required
-                placeholder="Bobby Orr"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Bobby"
+                value={form.firstName}
+                onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+                className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="reg-number">Jersey Number *</Label>
+              <Label htmlFor="reg-lastName">Last Name *</Label>
               <Input
-                id="reg-number"
-                type="number"
+                id="reg-lastName"
                 required
-                min={0}
-                max={99}
-                placeholder="4"
-                value={form.number}
-                onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))}
+                placeholder="Orr"
+                value={form.lastName}
+                onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
+                className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="reg-position">Position</Label>
-              <Select value={form.position} onValueChange={(v) => setForm((f) => ({ ...f, position: v }))}>
-                <SelectTrigger id="reg-position">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="skater">Skater</SelectItem>
-                  <SelectItem value="goalie">Goalie</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="reg-email">Email *</Label>
+              <Label htmlFor="reg-email">Email Address *</Label>
               <Input
                 id="reg-email"
                 type="email"
@@ -272,17 +272,47 @@ function JoinForm() {
                 placeholder="bobby@example.com"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary"
               />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="reg-phone">Phone <span className="text-muted-foreground">(optional)</span></Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="reg-phone">Phone Number <span className="text-muted-foreground">(optional)</span></Label>
               <Input
                 id="reg-phone"
                 type="tel"
                 placeholder="(555) 123-4567"
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="reg-position">Position *</Label>
+              <Select value={form.position} onValueChange={(v) => setForm((f) => ({ ...f, position: v }))}>
+                <SelectTrigger id="reg-position" className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary">
+                  <SelectValue placeholder="Select position" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="forward">Forward</SelectItem>
+                  <SelectItem value="defense">Defence</SelectItem>
+                  <SelectItem value="goalie">Goalie</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="reg-skillLevel">Skill Level *</Label>
+              <Select value={form.skillLevel} onValueChange={(v) => setForm((f) => ({ ...f, skillLevel: v }))}>
+                <SelectTrigger id="reg-skillLevel" className="bg-card border-border/60 text-foreground focus:ring-primary focus:border-primary">
+                  <SelectValue placeholder="Select skill level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SKILL_LEVELS.map((level) => (
+                    <SelectItem key={level.value} value={level.value}>
+                      {level.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -290,8 +320,8 @@ function JoinForm() {
             <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">{error}</p>
           )}
 
-          <Button type="submit" className="w-full" disabled={mutation.isPending}>
-            {mutation.isPending ? "Signing up..." : "Join the Club"}
+          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={mutation.isPending}>
+            {mutation.isPending ? "Signing up..." : "Drop the Puck! \u{1F3D2}"}
           </Button>
         </form>
       </CardContent>

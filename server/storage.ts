@@ -25,7 +25,8 @@ sqlite.exec(`
     phone TEXT,
     is_active INTEGER NOT NULL DEFAULT 1,
     avatar_initials TEXT,
-    joined_at TEXT NOT NULL DEFAULT ''
+    joined_at TEXT NOT NULL DEFAULT '',
+    notes TEXT
   );
 
   CREATE TABLE IF NOT EXISTS games (

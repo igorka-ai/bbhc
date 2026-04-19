@@ -13,6 +13,7 @@ export const players = sqliteTable("players", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   avatarInitials: text("avatar_initials"),
   joinedAt: text("joined_at").notNull().default(""),
+  notes: text("notes"),
 });
 
 export const insertPlayerSchema = createInsertSchema(players).omit({ id: true });
